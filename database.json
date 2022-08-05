@@ -1,0 +1,7 @@
+{
+    "host": "walking-on-a-planet.cg4dbcpn4gmm.us-west-1.rds.amazonaws.com",
+    "user":"admin",
+    "password":"gmlwoqkqh",
+    "port":"3306",
+    "database": "walking-on-a-planet"
+}
