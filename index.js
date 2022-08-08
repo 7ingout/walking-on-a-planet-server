@@ -94,11 +94,49 @@ app.post('/login', async (req, res)=> {
 })
 
 // 메인에 보내기 
-app.get('/trips', async (req, res)=> {
-    const params = req.params;
-    const { genre } = params;
+// visual
+app.get('/visuals', async (req, res)=> {
     connection.query(
-        "select * from trip",
+        "select * from visual",
+        (err, rows, fields)=> {
+            res.send(rows)
+        }
+    )
+})
+// recommand
+app.get('/recommands', async (req, res)=> {
+    connection.query(
+        "select * from recommand",
+        (err, rows, fields)=> {
+            res.send(rows)
+        }
+    )
+})
+// pic
+app.get('/pics', async (req, res)=> {
+    connection.query(
+        "select * from pics",
+        (err, rows, fields)=> {
+            res.send(rows)
+        }
+    )
+})
+
+// 모든 장소 모아보기
+// destinations
+app.get('/trips', async (req, res)=> {
+    connection.query(
+        "select * from trip order by cityNational ASC",
+        (err, rows, fields)=> {
+            res.send(rows)
+        }
+    )
+})
+
+// 검색 기능
+app.get('/trips', async (req, res)=> {
+    connection.query(
+        `select * from trip where=`,
         (err, rows, fields)=> {
             res.send(rows)
         }
