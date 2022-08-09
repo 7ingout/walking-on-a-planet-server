@@ -49,9 +49,17 @@ app.post("/upload2", upload.single("cityMapImg"), function(req, res, next){
     })
 })
 
+// gallery get 요청
+app.get("/trip", async (req, res)=> {
+    connection.query("select * from trip",
+    (err, result, fields)=> {
+        res.send(result)
+    })
+})
+
 // 국가 등록
 app.post('/addTrip', async(req,res) => {
-    const { cityImg, cityContinent, cityNational, cityDesc, cityDesc2, cityDesc3, cityMapImg} = req.body;
+    const { cityImg, cityContinent, cityNational, cityDesc, cityDesc2, cityDesc3, cityMapImg } = req.body;
     connection.query("insert into trip(`cityImg`, `cityContinent`, `cityNational`, `cityDesc`, `cityDesc2`, `cityDesc3`, `citymapImg`) values(?,?,?,?,?,?,?)",
     [cityImg, cityContinent, cityNational, cityDesc, cityDesc2, cityDesc3, cityMapImg],
     (err, result, fields) => {
@@ -60,13 +68,19 @@ app.post('/addTrip', async(req,res) => {
     })
 })
 
-
-// gallery get 요청
-app.get("/trip", async (req, res)=> {
-    connection.query("select * from trip",
-    (err, result, fields)=> {
-        res.send(result)
-    })
+// 국가 정보 수정
+app.put('/editTrip/:cityNational', async (req,res)=>{
+    // 파라미터 값을 가지고 있는 객체
+    const params = req.params;
+    const { cityNational } = params;
+    const body = req.body;
+    const { cityImg, cityContinent, cityDesc, cityDesc2, cityDesc3, cityMapImg } = body;
+    connection.query(
+        `update trip set cityImg='${cityImg}', cityContinent='${cityContinent}', cityDesc='${cityDesc}', cityDesc2='${cityDesc2}', cityDesc3='${cityDesc3}', cityMapImg='${cityMapImg}' where cityNational= '${cityNational}'`,
+        (err, rows, fields)=>{
+            res.send(err);
+        }
+    )
 })
 
 // 상세보기
