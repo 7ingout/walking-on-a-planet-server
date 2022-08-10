@@ -49,9 +49,23 @@ app.post("/upload2", upload.single("cityMapImg"), function(req, res, next){
     })
 })
 
-// gallery get 요청
+app.post("/upload3", upload.single("productImg"), function(req, res, next){
+    res.send({
+        productImg: req.file.filename
+    })
+})
+
+// trip 모아보기 get 요청
 app.get("/trip", async (req, res)=> {
-    connection.query("select * from trip",
+    connection.query("select * from trip order by cityNational ASC",
+    (err, result, fields)=> {
+        res.send(result)
+    })
+})
+
+// 중고거래 모아보기 get 요청
+app.get("/usedtrade", async (req, res)=> {
+    connection.query("select * from shop",
     (err, result, fields)=> {
         res.send(result)
     })
@@ -83,6 +97,18 @@ app.put('/editTrip/:cityNational', async (req,res)=>{
     )
 })
 
+// 국가 삭제
+app.delete('/deleteTrip/:cityNational', async (req,res)=>{
+    const params = req.params;
+    const { cityNational } = params;
+    connection.query(
+        `delete from trip where cityNational='${cityNational}'`,
+        (err, rows, fields)=>{
+            res.send(rows);
+        }
+    )
+})
+
 // 상세보기
 app.get('/destinations/:cityNational', async (req,res)=>{
     const params = req.params;
@@ -95,6 +121,81 @@ app.get('/destinations/:cityNational', async (req,res)=>{
     )
 })
 
+// 중고거래 등록
+app.post('/addGoods', async(req,res) => {
+    const { productImg, productName, productSeller, productPrice, productDesc, todayDate } = req.body;
+    connection.query("insert into shop(`productImg`, `productName`, `productSeller`, `productPrice`, `productDesc`, `todayDate`) values(?,?,?,?,?,?)",
+    [productImg, productName, productSeller, productPrice, productDesc, todayDate],
+    (err, result, fields) => {
+        res.send("등록되었습니다.");
+        console.log(err);
+    })
+})
+
+
+// 중고거래 상세보기
+app.get('/usedtrade/:no', async (req,res)=>{
+    const params = req.params;
+    const { no } = params;
+    connection.query(
+        `select no, productImg, productName, productSeller, productPrice, productDesc, DATE_FORMAT(todayDate, "%Y-%m-%d") as todayDate from shop where no=${no}`,
+        (err, rows, fields)=>{
+            res.send(rows[0]);
+        }
+    )
+})
+
+// 중고거래 수정
+app.put('/editGoods/:no', async (req,res)=>{
+    // 파라미터 값을 가지고 있는 객체
+    const params = req.params;
+    const { no } = params;
+    const body = req.body;
+    const { productImg, productName, productSeller, productPrice, productDesc, todayDate } = req.body;
+    connection.query(
+        `update shop set productImg='${productImg}', productName='${productName}', productSeller='${productSeller}', productPrice='${productPrice}', productDesc='${productDesc}', todayDate='${todayDate}' where no= ${no}`,
+        (err, rows, fields)=>{
+            res.send(err);
+        }
+    )
+})
+
+// 중고거래 삭제
+app.delete('/deleteGoods/:no', async (req,res)=>{
+    const params = req.params;
+    const { no } = params;
+    connection.query(
+        `delete from shop where no=${no}`,
+        (err, rows, fields)=>{
+            res.send(rows);
+        }
+    )
+})
+
+// 장바구니에 추가
+app.post('/cart', async (req,res)=>{
+    const body = req.body;
+    const {userId, productName, productImg, productPrice, productSeller} = body;
+    connection.query(
+        "insert into cart(userId, productName, productImg, productPrice, productSeller) values(?,?,?,?,?)",
+        [userId, productName, productImg, productPrice, productSeller],
+        (err, rows, fields)=>{
+            res.send(err);
+        }
+    )
+})
+
+// 마이페이지
+app.get('/mypage/:userId', async (req,res)=>{
+    const params = req.params;
+    const { usreId } = params;
+    connection.query(
+        `select userId, productName, productImg, productDesc, productPrice, productSeller from cart where userId='${usreId}'`,
+        (err, rows, fields)=>{
+            res.send(rows);
+        }
+    )
+})
 
 // 회원가입 요청
 app.post("/join", async (req,res)=> {
