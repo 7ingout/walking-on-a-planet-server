@@ -65,7 +65,7 @@ app.get("/trip", async (req, res)=> {
 
 // 중고거래 모아보기 get 요청
 app.get("/usedtrade", async (req, res)=> {
-    connection.query("select * from shop",
+    connection.query("select * from shop order by todayDate desc",
     (err, result, fields)=> {
         res.send(result)
     })
@@ -138,7 +138,7 @@ app.get('/usedtrade/:no', async (req,res)=>{
     const params = req.params;
     const { no } = params;
     connection.query(
-        `select no, productImg, productName, productSeller, productPrice, productDesc, DATE_FORMAT(todayDate, "%Y-%m-%d") as todayDate from shop where no=${no}`,
+        `select no, productImg, productName, productSeller, productPrice, productDesc, DATE_FORMAT(todayDate, "%Y-%m-%d") as todayDate, reserve from shop where no=${no}`,
         (err, rows, fields)=>{
             res.send(rows[0]);
         }
@@ -185,17 +185,74 @@ app.post('/cart', async (req,res)=>{
     )
 })
 
+// 장바구니 담아놓은 사람 증가 업데이트
+app.put('/cart/:no', async (req,res)=>{
+    const params = req.params;
+    const { no } = params;
+    connection.query(
+        `update shop set reserve = reserve + 1 where no= ${no}`,
+        (err, rows, fields)=>{
+            res.send(err);
+        }
+    )
+})
+
+// 장바구니 담아놓은 사람 삭제 업데이트
+app.put('/minusCart/:name', async (req,res)=>{
+    const params = req.params;
+    const { name } = params;
+    connection.query(
+        `update shop set reserve = reserve - 1 where productName= '${name}'`,
+        (err, rows, fields)=>{
+            res.send(err);
+        }
+    )
+})
+
 // 마이페이지
 app.get('/mypage/:userId', async (req,res)=>{
     const params = req.params;
-    const { usreId } = params;
+    const { userId } = params;
     connection.query(
-        `select userId, productName, productImg, productDesc, productPrice, productSeller from cart where userId='${usreId}'`,
+        `select * from cart where userId='${userId}'`,
         (err, rows, fields)=>{
             res.send(rows);
         }
     )
 })
+
+// 장바구니 가격 합계
+app.get('/total/:userId', async (req,res)=>{
+    const params = req.params;
+    const { userId } = params;
+    connection.query(
+        `select sum(productPrice) as total from cart where userId='${userId}'`,
+        (err, rows, fields)=>{
+            res.send(rows[0]);
+        }
+    )
+})
+
+// 장바구니 물건 삭제
+app.delete('/deleteCarts/:no', async (req,res)=>{
+    const params = req.params;
+    const { no } = params;
+    connection.query(
+        `delete from cart where no=${no}`,
+        (err, rows, fields)=>{
+            res.send(rows);
+        }
+    )
+})
+
+// 이벤트 모아보기 get 요청
+app.get("/event", async (req, res)=> {
+    connection.query("select * from event",
+    (err, result, fields)=> {
+        res.send(result)
+    })
+})
+
 
 // 회원가입 요청
 app.post("/join", async (req,res)=> {
@@ -210,7 +267,7 @@ app.post("/join", async (req,res)=> {
                 // 쿼리 작성
                 const { userId, userName, userPost, userAdd, userAdd2, userTel, userPhone, userMail, userYear, userMonth, userDay } = req.body;
                 // connection.query 인자 첫번째: 쿼리문, 두번째: 쿼리문에 들어갈 값, 세번째: 처리 되면 하는 애
-                connection.query("insert into members(userId, userPass, userName, userPost, userAdd, userAdd2, userTel, userPhone, userMail, userYear, userMonth, userDay, regdate, userCoupon) values(?,?,?,?,?,?,?,?,?,?,?,?,DATE_FORMAT(now(),'%Y-%m-%d'),1)",
+                connection.query("insert into members(userId, userPass, userName, userPost, userAdd, userAdd2, userTel, userPhone, userMail, userYear, userMonth, userDay, regdate) values(?,?,?,?,?,?,?,?,?,?,?,?,DATE_FORMAT(now(),'%Y-%m-%d'))",
                     [userId, myPass, userName, userPost, userAdd, userAdd2, userTel, userPhone, userMail, userYear, userMonth, userDay],
                     (err, result, fields) => {
                         console.log(result)
