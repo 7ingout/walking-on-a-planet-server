@@ -55,6 +55,12 @@ app.post("/upload3", upload.single("productImg"), function(req, res, next){
     })
 })
 
+app.post("/upload4", upload.single("eventImg"), function(req, res, next){
+    res.send({
+        eventImg: req.file.filename
+    })
+})
+
 // trip 모아보기 get 요청
 app.get("/trip", async (req, res)=> {
     connection.query("select * from trip order by cityNational ASC",
@@ -247,12 +253,58 @@ app.delete('/deleteCarts/:no', async (req,res)=>{
 
 // 이벤트 모아보기 get 요청
 app.get("/event", async (req, res)=> {
-    connection.query("select * from event",
+    connection.query("select * from event order by good desc",
     (err, result, fields)=> {
         res.send(result)
     })
 })
 
+// 이벤트 사진 크게보기
+app.get('/event/:userId', async (req,res)=>{
+    const params = req.params;
+    const { userId } = params;
+    connection.query(
+        `select * from event where userId='${userId}'`,
+        (err, rows, fields)=>{
+            res.send(rows[0]);
+        }
+    )
+})
+
+// 이벤트 등록
+app.post('/addEvent', async(req,res) => {
+    const { userId, eventImg, eventTitle, eventDesc, todayDate } = req.body;
+    connection.query("insert into event(`userId`, `eventImg`, `eventTitle`, `eventDesc`, `regdate`) values(?,?,?,?,?)",
+    [userId, eventImg, eventTitle, eventDesc, todayDate],
+    (err, result, fields) => {
+        res.send("등록되었습니다.");
+        console.log(err);
+    })
+})
+
+// 이벤트 삭제
+app.delete('/deleteEvent/:userId2', async (req,res)=>{
+    const params = req.params;
+    const { userId2 } = params;
+    connection.query(
+        `delete from event where userId='${userId2}'`,
+        (err, rows, fields)=>{
+            res.send(rows);
+        }
+    )
+})
+
+// 이벤트 좋아요 누르기
+app.put('/good/:userId', async (req,res)=>{
+    const params = req.params;
+    const { userId } = params;
+    connection.query(
+        `update event set good = good + 1 where userId= '${userId}'`,
+        (err, rows, fields)=>{
+            res.send(err);
+        }
+    )
+})
 
 // 회원가입 요청
 app.post("/join", async (req,res)=> {
