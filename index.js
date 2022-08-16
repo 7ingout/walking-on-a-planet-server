@@ -183,10 +183,19 @@ app.post('/cart', async (req,res)=>{
     const body = req.body;
     const {userId, productName, productImg, productPrice, productSeller} = body;
     connection.query(
-        "insert into cart(userId, productName, productImg, productPrice, productSeller) values(?,?,?,?,?)",
-        [userId, productName, productImg, productPrice, productSeller],
+        `select * from cart where userId='${userId}' and productName='${productName}'`,
         (err, rows, fields)=>{
-            res.send(err);
+            if(rows.length == 1) {
+                res.send('있음')
+            } else {
+                connection.query(
+                    "insert into cart(userId, productName, productImg, productPrice, productSeller) values(?,?,?,?,?)",
+                    [userId, productName, productImg, productPrice, productSeller],
+                    (err, rows, fields)=>{
+                        res.send(rows);
+                    }
+                )
+            }
         }
     )
 })
@@ -409,13 +418,28 @@ app.get('/pics', async (req, res)=> {
     )
 })
 
-// 검색 기능 (나중에 구현하기)
-app.get('/search', async (req, res)=> {
+// 검색 기능
+app.get('/search/:searchInput', async (req, res)=> {
+    const params = req.params;
+    const { searchInput } = params;
     connection.query(
-        `select * from trip where=`,
-        // where `{$_POST['search_m']}` Like '%{$_POST['search']}%'
+        `SELECT * FROM trip where cityNational Like '%${searchInput}%'`,
         (err, rows, fields)=> {
-            res.send(rows)
+            // res.send(rows[0])
+            res.send(rows);
+            console.log(rows);
+        }
+    )
+})
+
+// 내가 내놓은 상품들
+app.get('/my/:userId', async (req,res)=>{
+    const params = req.params;
+    const { userId } = params;
+    connection.query(
+        `select * from shop where productSeller='${userId}'`,
+        (err, rows, fields)=>{
+            res.send(rows);
         }
     )
 })
