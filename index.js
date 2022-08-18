@@ -251,6 +251,19 @@ app.delete('/deleteCarts/:no', async (req,res)=>{
     )
 })
 
+// 담은 물건 못담게 하기
+app.get('/double/:userId/:productName', async (req,res)=>{
+    const params = req.params;
+    const { userId } = params;
+    const { productName } = params;
+    connection.query(
+        `select count(*) as count from cart, shop where cart.productName = shop.productName and cart.userId='${userId}' and shop.productName='${productName}'`,
+        (err, rows, fields)=>{
+            res.send(rows[0]);
+        }
+    )
+})
+
 // 이벤트 모아보기 get 요청
 app.get("/event", async (req, res)=> {
     connection.query("select * from event order by good desc",
