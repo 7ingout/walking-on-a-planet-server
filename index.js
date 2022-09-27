@@ -66,6 +66,7 @@ app.post("/upload4", upload.single("eventImg"), function(req, res, next){
 app.get("/trip", async (req, res)=> {
     connection.query("select * from trip order by cityNational ASC",
     (err, result, fields)=> {
+        res.header("Access-Control-Allow-Origin", "*");
         res.send(result)
     })
 })
